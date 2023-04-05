@@ -44,11 +44,13 @@ for platform in ('arm64', 'x64', 'x86'):
 logger = logging.getLogger('pywebview')
 
 class EdgeChrome:
-    def __init__(self, form, window, cache_dir):
+    def __init__(self, form, window, cache_dir, exe_dir):
+        print(f"Exe dir: {exe_dir}")
         self.pywebview_window = window
         self.web_view = WebView2()
         props = CoreWebView2CreationProperties()
         props.UserDataFolder = cache_dir
+        props.BrowserExecutableFolder = exe_dir
         props.set_IsInPrivateModeEnabled(_private_mode)
         self.web_view.CreationProperties = props
 

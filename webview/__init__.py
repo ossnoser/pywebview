@@ -67,14 +67,15 @@ _user_agent = None
 _http_server = False
 _private_mode = True
 _storage_path = None
+_exe_dir = None
 
 token = _token
 windows = []
 menus = []
 
 def start(func=None, args=None, localization={}, gui=None, debug=False, http_server=False,
-          http_port=None, user_agent=None, private_mode=True, storage_path=None, menu=[], 
-          server=http.BottleServer, server_args={}, ssl=False):
+          http_port=None, user_agent=None, private_mode=True, storage_path=None, exe_dir=None, 
+          menu=[], server=http.BottleServer, server_args={}, ssl=False):
     """
     Start a GUI loop and display previously created windows. This function must
     be called from a main thread.
@@ -99,7 +100,7 @@ def start(func=None, args=None, localization={}, gui=None, debug=False, http_ser
     :param server: Server class. Defaults to BottleServer
     :param server_args: Dictionary of arguments to pass through to the server instantiation
     """
-    global guilib, _debug, _http_server, _user_agent, _private_mode, _storage_path
+    global guilib, _debug, _http_server, _user_agent, _private_mode, _storage_path, _exe_dir
 
     def _create_children(other_windows):
         if not windows[0].events.shown.wait(10):
@@ -117,6 +118,7 @@ def start(func=None, args=None, localization={}, gui=None, debug=False, http_ser
     _http_server = http_server
     _private_mode = private_mode
     _storage_path = storage_path
+    _exe_dir = exe_dir
 
     if _storage_path and _private_mode and not os.path.exists(_storage_path):
         os.makedirs(_storage_path)

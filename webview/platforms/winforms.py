@@ -16,7 +16,7 @@ from ctypes import windll
 from platform import machine
 import tempfile
 
-from webview import windows, _private_mode, _storage_path, OPEN_DIALOG, FOLDER_DIALOG, SAVE_DIALOG
+from webview import windows, _private_mode, _storage_path, _exe_dir, OPEN_DIALOG, FOLDER_DIALOG, SAVE_DIALOG
 from webview.guilib import forced_gui_
 from webview.util import parse_file_type, inject_base_uri
 from webview.screen import Screen
@@ -118,7 +118,7 @@ else:
     logger.debug('Using WinForms / MSHTML')
     renderer = 'mshtml'
 
-if not _private_mode or _storage_path:
+if not _private_mode or _storage_path or _exe_dir:
     try:
         data_folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
         
@@ -126,6 +126,7 @@ if not _private_mode or _storage_path:
             data_folder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
             
         cache_dir = _storage_path or os.path.join(data_folder, 'pywebview')
+        exe_dir = _exe_dir or ""
 
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
@@ -133,6 +134,7 @@ if not _private_mode or _storage_path:
         logger.exception(f'Cache directory {cache_dir} creation failed')
 else:
     cache_dir = tempfile.TemporaryDirectory().name
+    exe_dir = _exe_dir or ""
 
 class BrowserView:
     instances = {}
@@ -140,7 +142,7 @@ class BrowserView:
     app_menu_list = None
 
     class BrowserForm(WinForms.Form):
-        def __init__(self, window, cache_dir):
+        def __init__(self, window, cache_dir, exe_dir):
             super().__init__()
             self.uid = window.uid
             self.pywebview_window = window
@@ -198,7 +200,7 @@ class BrowserView:
                 self.browser = None
                 CEF.create_browser(window, self.Handle.ToInt32(), BrowserView.alert, self)
             elif is_chromium:
-                self.browser = Chromium.EdgeChrome(self, window, cache_dir)
+                self.browser = Chromium.EdgeChrome(self, window, cache_dir, exe_dir)
                 # for chromium edge, need this factor to modify the coordinates
                 self.scale_factor = windll.shcore.GetScaleFactorForDevice(0)/100
             else:
@@ -527,7 +529,7 @@ def setup_app():
 
 def create_window(window):
     def create():
-        browser = BrowserView.BrowserForm(window, cache_dir)
+        browser = BrowserView.BrowserForm(window, cache_dir, exe_dir)
         BrowserView.instances[window.uid] = browser
 
         if window.hidden:
